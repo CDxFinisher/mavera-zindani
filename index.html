@@ -34,6 +34,7 @@ h1{font-size:25px;margin-bottom:10px;background:linear-gradient(135deg,#c084fc,#
 p{font-size:14px;line-height:1.6;color:#cbd5e1;margin-bottom:16px}
 .go{width:100%;padding:13px;border-radius:12px;border:1px solid rgba(216,180,254,.4);background:linear-gradient(135deg,#7e22ce,#581c87);color:#fff;font-weight:700;font-size:16px;pointer-events:auto}
 .hidden{display:none!important}
+#pz{right:calc(env(safe-area-inset-right,0px) + 12px);top:calc(env(safe-area-inset-top,0px) + 116px);width:42px;height:42px;font-size:13px;background:rgba(15,10,25,.8);box-shadow:none}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -58,6 +59,12 @@ p{font-size:14px;line-height:1.6;color:#cbd5e1;margin-bottom:16px}
 <button class="btn-a" id="dash">ATIL</button>
 <button class="btn-a" id="atk">KILIÇ</button>
 
+<button class="btn-a" id="pz">❚❚</button>
+<div id="pause" class="screen hidden"><div class="box">
+  <h1>DURAKLATILDI</h1><p>Oyun beklemede. Hazır olunca devam et.</p>
+  <button class="go" id="resumeBtn">Devam Et</button>
+  <button class="go" id="menuBtn" style="margin-top:8px;background:rgba(255,255,255,.08)">Ana Menü</button>
+</div></div>
 <div id="start" class="screen"><div class="box">
   <h1>MAVERA ZİNDANI</h1>
   <p>Karanlık dehlizlerde zombi iblislerle savaş. Her katta <b>Ruh Taşlarını</b> ve <b>Zindan Anahtarı</b>’nı topla, portala ulaş. Kırmızı iksirler canını yeniler.<br><br>
@@ -340,6 +347,17 @@ function levelDone(){
   $('next').classList.remove('hidden');
   const u=$('ups');u.innerHTML='';[...UP].sort(()=>Math.random()-.5).slice(0,3).forEach(([t,f])=>{const b=document.createElement('button');b.className='go';b.style.marginTop='8px';b.textContent=t;b.onclick=()=>{f();G.level++;G.hp=Math.min(G.maxHp,G.hp+30);buildLevel();saveGame();toast('💾 İlerleme kaydedildi');G.state='play';$('next').classList.add('hidden')};u.appendChild(b)});
 }
+
+/* ---------- Duraklatma ---------- */
+function setPause(p){
+  if(p&&G.state==='play'){G.state='pause';G.hold=false;$('pause').classList.remove('hidden')}
+  else if(!p&&G.state==='pause'){G.state='play';$('pause').classList.add('hidden')}
+}
+$('pz').addEventListener('pointerdown',e=>{e.preventDefault();setPause(G.state==='play')});
+$('resumeBtn').onclick=()=>setPause(false);
+$('menuBtn').onclick=()=>location.reload();
+addEventListener('keydown',e=>{if(e.key==='Escape'||e.key.toLowerCase()==='p')setPause(G.state==='play')});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)setPause(true)});
 
 /* ---------- Mini harita ---------- */
 const mmc=$('mm').getContext('2d');
