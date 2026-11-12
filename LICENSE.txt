@@ -1,0 +1,18 @@
+Mavera Zindanı: 3D Aksiyon RPG
+Copyright (c) 2026 Efe İflazoğlu. Tüm hakları saklıdır. / All rights reserved.
+
+TÜRKÇE
+Bu yazılımın kaynak kodu, tasarımı, metinleri ve diğer tüm içeriği Efe İflazoğlu'na aittir.
+Yazarın önceden yazılı izni olmadan bu yazılımın tamamı veya bir kısmı kopyalanamaz,
+değiştirilemez, birleştirilemez, yayınlanamaz, dağıtılamaz, alt lisansa verilemez, satılamaz
+veya başka bir projede kullanılamaz. Oyunu yazarın yayınladığı adreste oynamak serbesttir.
+Bu şartların ihlali halinde telif hakkı ihlali bildirimi yapma hakkı saklıdır.
+
+ENGLISH
+The source code, design, text and all other content of this software are the property of
+Efe İflazoğlu. Without the author's prior written permission, no part of this software may be
+copied, modified, merged, published, distributed, sublicensed, sold or used in another project.
+Playing the game at the address published by the author is permitted.
+The author reserves the right to file copyright infringement notices for any violation.
+
+İletişim / Contact: efeiflazoglu10@gmail.com
