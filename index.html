@@ -1,25 +1,9 @@
 <!DOCTYPE html>
-<!--
-  Mavera Zindanı: 3D Aksiyon RPG
-  Copyright (c) 2026 Efe İflazoğlu. Tüm hakları saklıdır.
-  All rights reserved.
-
-  Bu yazılımın kaynak kodu, tasarımı ve içeriği Efe İflazoğlu'na aittir.
-  Yazarın önceden yazılı izni olmadan kopyalanamaz, değiştirilemez, dağıtılamaz,
-  yeniden yayınlanamaz veya başka bir projede kullanılamaz. Oyunu bu adreste
-  oynamak serbesttir.
-  Permission to copy, modify, redistribute or reuse this code is NOT granted
-  without the author's prior written permission.
-
-  İletişim / Contact: efeiflazoglu10@gmail.com
--->
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Mavera Zindanı: 3D Aksiyon RPG</title>
-<meta name="author" content="Efe İflazoğlu">
-<meta name="copyright" content="© 2026 Efe İflazoğlu. Tüm hakları saklıdır.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;overflow:hidden;background:#020205;color:#e2e8f0;font-family:'Segoe UI',system-ui,sans-serif;touch-action:none;overscroll-behavior:none}
@@ -49,7 +33,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#020205;color:#e2e8f
 h1{font-size:25px;margin-bottom:10px;background:linear-gradient(135deg,#c084fc,#f43f5e);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 p{font-size:14px;line-height:1.6;color:#cbd5e1;margin-bottom:16px}
 .go{width:100%;padding:13px;border-radius:12px;border:1px solid rgba(216,180,254,.4);background:linear-gradient(135deg,#7e22ce,#581c87);color:#fff;font-weight:700;font-size:16px;pointer-events:auto}
-.lic{margin-top:14px;font-size:11px;line-height:1.5;color:#8b7bb0;text-align:center}
 .hidden{display:none!important}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -79,8 +62,7 @@ p{font-size:14px;line-height:1.6;color:#cbd5e1;margin-bottom:16px}
   <h1>MAVERA ZİNDANI</h1>
   <p>Karanlık dehlizlerde zombi iblislerle savaş. Her katta <b>Ruh Taşlarını</b> ve <b>Zindan Anahtarı</b>’nı topla, portala ulaş. Kırmızı iksirler canını yeniler.<br><br>
   🕹️ Ekranın sol yarısına dokunup sürükle<br>⚔️ KILIÇ: bas veya basılı tut (otomatik hedef alır)<br>💨 ATIL: kısa süre dokunulmaz hızlı kaçış<br>⌨️ PC: WASD/Ok + BOŞLUK + SHIFT</p>
-  <button class="go" id="startBtn">Zindana Adım At</button>
-  <div class="lic">© 2026 Efe İflazoğlu. Tüm hakları saklıdır.<br>İzinsiz kopyalanamaz, değiştirilemez ve dağıtılamaz.</div>
+  <button class="go hidden" id="contBtn" style="margin-bottom:8px;background:linear-gradient(135deg,#047857,#065f46)"></button><button class="go" id="startBtn">Yeni Oyun</button>
 </div></div>
 <div id="next" class="screen hidden"><div class="box">
   <h1 style="background:linear-gradient(135deg,#4ade80,#047857);-webkit-background-clip:text;background-clip:text">KAT TAMAMLANDI!</h1>
@@ -93,9 +75,11 @@ p{font-size:14px;line-height:1.6;color:#cbd5e1;margin-bottom:16px}
 
 <script>
 const $=id=>document.getElementById(id);
-console.log('%cMavera Zindanı © 2026 Efe İflazoğlu. Tüm hakları saklıdır.','color:#c084fc;font-weight:bold');
 const CS=4, WH=4;
 let best=0; try{best=+localStorage.getItem('mavera_best')||0}catch(e){}
+function saveGame(){try{localStorage.setItem('mavera_save',JSON.stringify({l:G.level,h:G.hp,m:G.maxHp,s:G.score,d:G.dmgB,p:G.spB,r:G.rngB}))}catch(e){}}
+function loadSave(){try{return JSON.parse(localStorage.getItem('mavera_save'))}catch(e){return null}}
+function clearSave(){try{localStorage.removeItem('mavera_save')}catch(e){}}
 
 /* ---------- Ses ---------- */
 let ac=null;
@@ -335,22 +319,26 @@ addEventListener('keyup',e=>{const k=e.key.toLowerCase();G.keys[k]=false;if(k===
 addEventListener('contextmenu',e=>e.preventDefault());
 
 /* ---------- Oyun akışı ---------- */
-function startGame(){
+function startGame(cont){
   if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}
   if(ac&&ac.state==='suspended')ac.resume();
-  G.level=1;G.hp=G.maxHp=100;G.score=0;G.dmgB=1;G.spB=0;G.rngB=0;
+  const sv=cont===true?loadSave():null;
+  if(sv){G.level=sv.l;G.hp=Math.max(sv.h,40);G.maxHp=sv.m;G.score=sv.s;G.dmgB=sv.d;G.spB=sv.p;G.rngB=sv.r}
+  else{G.level=1;G.hp=G.maxHp=100;G.score=0;G.dmgB=1;G.spB=0;G.rngB=0;clearSave()}
   buildLevel();G.state='play';
   ['start','over','next'].forEach(i=>$(i).classList.add('hidden'));
 }
 $('startBtn').onclick=startGame;
-$('againBtn').onclick=startGame;
+const sv0=loadSave();if(sv0&&sv0.l>1){const cb=$('contBtn');cb.classList.remove('hidden');cb.textContent='Devam Et (Kat '+sv0.l+')'}
+$('contBtn').onclick=()=>startGame(true);
+$('againBtn').onclick=()=>startGame(!!loadSave());
 const UP=[['⚔️ Keskin Kılıç: +1 hasar',()=>G.dmgB++],['❤️ Can Kristali: +25 maksimum can',()=>{G.maxHp+=25;G.hp+=25}],['👟 Çeviklik: %10 daha hızlı',()=>G.spB+=.1],['🌀 Geniş Savuruş: +0,5 menzil',()=>G.rngB+=.5]];
 function levelDone(){
   G.state='next';G.score+=500+G.hp;sfx.win();
   if(G.score>best){best=G.score;try{localStorage.setItem('mavera_best',best)}catch(e){}}
   $('nextTxt').innerHTML='Kat '+G.level+' temizlendi!<br>Skor: <b>'+G.score+'</b><br>Bir sonraki kat daha büyük ve daha tehlikeli. Canın +30 yenilenecek.<br><b>Bir yetenek seç:</b>';
   $('next').classList.remove('hidden');
-  const u=$('ups');u.innerHTML='';[...UP].sort(()=>Math.random()-.5).slice(0,3).forEach(([t,f])=>{const b=document.createElement('button');b.className='go';b.style.marginTop='8px';b.textContent=t;b.onclick=()=>{f();G.level++;G.hp=Math.min(G.maxHp,G.hp+30);buildLevel();G.state='play';$('next').classList.add('hidden')};u.appendChild(b)});
+  const u=$('ups');u.innerHTML='';[...UP].sort(()=>Math.random()-.5).slice(0,3).forEach(([t,f])=>{const b=document.createElement('button');b.className='go';b.style.marginTop='8px';b.textContent=t;b.onclick=()=>{f();G.level++;G.hp=Math.min(G.maxHp,G.hp+30);buildLevel();saveGame();toast('💾 İlerleme kaydedildi');G.state='play';$('next').classList.add('hidden')};u.appendChild(b)});
 }
 
 /* ---------- Mini harita ---------- */
