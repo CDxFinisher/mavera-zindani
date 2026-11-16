@@ -475,9 +475,10 @@ function buildLevel(){
    for(let i=0;i<ne;i++){const [kd,bg]=kindOf(i);if(!bg&&(kd==='zom'||kd==='fast'))cand.push(i)}
    cand.sort(()=>Math.random()-.5);for(let k=0;k<need&&k<cand.length;k++)keyIdxs.add(cand[k])}
   for(let i=0;i<ne&&empty.length;i++){const [r,c]=empty.pop(),p=cellPos(r,c),[kind,big]=kindOf(i);spawnEnemyAt(p.x,p.z,kind,big,keyIdxs.has(i))}
-  G.huntLeft=G.enemies.filter(e=>e.hasKey).length;
+  G.huntLeft=G.enemies.filter(e=>e.hasKey).length;G.huntTotal=G.huntLeft;
   if(G.level%3===0&&bossCell){const [r,c]=bossCell,g=new THREE.Group();const b=mkZ('boss',true,true);g.add(b);g.scale.setScalar(2);const bg=new THREE.Mesh(gHpBar,mHpBg),fg=new THREE.Mesh(gHpBar,mHpFg);bg.position.set(0,2.9,0);fg.position.set(0,2.9,.01);g.add(bg,fg);g.position.copy(cellPos(r,c));w.add(g);const hp=130+Math.ceil(LV(G.level)*18*(G.mods.armor?1.3:1));G.enemies.push({g,b,fg,hp,max:hp,kind:'boss',sc:2,spd:2.1,dmg:40+Math.floor(LV(G.level)/4),cd:2,kb:new THREE.Vector3(),bump:0,rad:1.2,hasKey:true});setTimeout(()=>{toast('👹 BOSS bu katta!');play('horn',1)},400)}
-  if(G.mode==='hunt'){if(!G.huntLeft)G.key=true}
+  if(G.mode==='hunt'&&!G.huntLeft)G.mode='normal';
+  if(G.mode==='hunt'){}
   else if(G.mode==='survive'){}
   else if(!G.enemies.some(e=>e.hasKey)){ // yedek: taşıyıcı yoksa anahtar yerde durur
     if(empty.length)put(gKey,mKey,'key');else{const m=new THREE.Mesh(gKey,mKey),p=cellPos(1,G.n-2);p.y=1.1;m.position.copy(p);w.add(m);G.items.push({m,type:'key'})}}
@@ -500,8 +501,9 @@ function toast(t){const e=$('toast');e.textContent=t;e.style.opacity=1;clearTime
 function updHud(){
   $('hp').style.width=Math.max(0,G.hp/G.maxHp*100)+'%';
   $('lvl').textContent='KAT '+G.level;
-  $('gm').textContent='💎 '+G.gems+'/'+G.need;
-  $('ky').textContent=G.key?'🗝️ ✓':'🗝️ ✗';
+  if(G.mode==='hunt'){$('gm').textContent='🎯 Mühür '+((G.huntTotal||0)-(G.huntLeft||0))+'/'+(G.huntTotal||0);$('ky').textContent=G.key?'🔓 Kapı açık':'🔒 Kapı kilitli'}
+  else if(G.mode==='survive'){$('gm').textContent='⏳ '+Math.ceil(G.surv)+' sn';$('ky').textContent=G.key?'🔓 Kapı açık':'🔒 Kapı kilitli'}
+  else{$('gm').textContent='💎 '+G.gems+'/'+G.need;$('ky').textContent=G.key?'🗝️ ✓':'🗝️ ✗'}
   $('sc').textContent='Skor: '+G.score+'  •  Rekor: '+best;
   let o='';
   if(G.mode==='hunt'&&!G.key)o='🎯 Mühürlü zombiler: '+G.huntLeft+' kaldı';else if(G.mode==='survive'&&!G.key)o='⏳ Hayatta kal: '+Math.ceil(G.surv)+' sn';else if(G.gems<G.need)o='Ruh Taşlarını topla';else if(!G.key)o=G.items.some(i=>i.type==='key')?'Yere düşen anahtarı al':G.enemies.some(e=>e.hasKey&&e.kind==='boss')?'Boss anahtarı taşıyor, onu yen':G.enemies.some(e=>e.hasKey)?'Altın parıltılı zombide anahtar var':'Zindan Anahtarı’nı bul';else o='Zindan kapısına git!';
@@ -957,20 +959,29 @@ function mkBug(){
   const g=new THREE.Group();ico(g,.11,0x2f5f3a,0,.1,0,1,.7,1.5);ico(g,.06,0x1f3d27,0,.12,.17);
   for(let k=-1;k<=1;k++)bx(g,.2,.02,.02,0x1b2b1f,0,.07,k*.08);
   ico(g,.03,0xfbbf24,.04,.17,.2,1,1,1,true);ico(g,.03,0xfbbf24,-.04,.17,.2,1,1,1,true);return g}
+function pickBugTarget(b){
+  let best=null,bd=1e9;const bp=b.m.position;
+  for(const e of G.enemies){const p=e.g.position;if(e.kind==='climb'&&(isWall(p.x,p.z)||p.y>.4))continue;
+    const n=e.bugs||0;if(n>=3)continue;const sc=Math.hypot(p.x-bp.x,p.z-bp.z)+n*8;if(sc<bd){bd=sc;best=e}}
+  return best}
 function sendBug(){
   if(G.state!=='play')return;
   if(G.bugN<=0){toast('Böceğin kalmadı');return}
-  let best=null,bd=24;
-  for(const e of G.enemies){const p=e.g.position;if(e.kind==='climb'&&(isWall(p.x,p.z)||p.y>.4))continue;
-    const n=e.bugs||0;if(n>=3)continue;const sc=Math.hypot(p.x-G.pos.x,p.z-G.pos.z)+n*6;if(sc<bd){bd=sc;best=e}}
-  if(!best){toast('Yakında zombi yok');return}
-  G.bugN--;const m=mkBug();m.position.set(G.pos.x,0,G.pos.z);G.world.add(m);
-  G.bugs.push({g:m,m,tgt:best,state:'run',pt:0,path:null,t:0,acc:0,tk:0,ox:(Math.random()-.5)*.6,oy:Math.random()*.5,oz:(Math.random()-.5)*.6});
-  best.bugs=(best.bugs||0)+1;play('click',.6,1.4);updHud()}
+  const cand=G.enemies.filter(e=>!(e.kind==='climb'&&(isWall(e.g.position.x,e.g.position.z)||e.g.position.y>.4)));
+  if(!cand.length){toast('Haritada zombi yok');return}
+  cand.sort((a,b)=>Math.hypot(a.g.position.x-G.pos.x,a.g.position.z-G.pos.z)-Math.hypot(b.g.position.x-G.pos.x,b.g.position.z-G.pos.z));
+  const n=G.bugN;G.bugN=0;
+  for(let i=0;i<n;i++){
+    const e=cand[i%cand.length],m=mkBug();m.position.set(G.pos.x+(Math.random()-.5)*1.2,0,G.pos.z+(Math.random()-.5)*1.2);G.world.add(m);
+    G.bugs.push({g:m,m,tgt:e,state:'run',pt:0,path:null,t:0,rt:0,acc:0,tk:0,ox:(Math.random()-.5)*.6,oy:Math.random()*.5,oz:(Math.random()-.5)*.6});
+    e.bugs=(e.bugs||0)+1}
+  toast('🪲 '+n+' böcek salındı, zombileri kendileri bulacak');play('click',.6,1.4);updHud()}
 function updateBugs(dt){
   for(let i=G.bugs.length-1;i>=0;i--){
-    const b=G.bugs[i],e=b.tgt;
-    if(!G.enemies.includes(e)||b.t>22){G.world.remove(b.m);G.bugs.splice(i,1);if(e.bugs)e.bugs--;continue}
+    const b=G.bugs[i];let e=b.tgt;
+    if(!G.enemies.includes(e)){const ne=pickBugTarget(b);if(!ne){G.world.remove(b.m);G.bugs.splice(i,1);continue}b.tgt=e=ne;ne.bugs=(ne.bugs||0)+1;b.state='run';b.path=null;b.t=0}
+    if(b.state==='run')b.rt=(b.rt||0)+dt;
+    if((b.state==='latch'&&b.t>22)||b.rt>70){G.world.remove(b.m);G.bugs.splice(i,1);if(e.bugs)e.bugs--;continue}
     const tp=e.g.position;
     if(b.state==='run'){
       const f=helperMove(b,tp.x,tp.z,8,dt);if(f!==null)b.m.rotation.y=f;b.m.position.y=Math.abs(Math.sin(tAcc*30))*.05;
