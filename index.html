@@ -44,7 +44,10 @@ p{font-size:14px;line-height:1.6;color:#cbd5e1;margin-bottom:16px}
 #lvb{position:fixed;left:50%;top:16%;transform:translateX(-50%);z-index:9;color:#fde68a;text-align:center;font-weight:800;text-shadow:0 0 12px #000,0 0 3px #000;opacity:0;transition:opacity .6s;pointer-events:none;font-size:16px;line-height:1.55;width:86%}
 #bug{right:calc(env(safe-area-inset-right,0px) + 12px);top:calc(env(safe-area-inset-top,0px) + 262px);width:46px;height:46px;font-size:12px;background:radial-gradient(circle,rgba(132,204,22,.9),rgba(54,83,20,.95));box-shadow:0 0 12px rgba(132,204,22,.4)}
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="three.min.js"></script>
+<script>window.THREE||document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>')</script>
+<script>window.THREE||document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\/script>')</script>
+<script>window.THREE||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>')</script>
 </head>
 <body>
 <div id="gl"></div>
